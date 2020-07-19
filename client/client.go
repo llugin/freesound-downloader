@@ -12,7 +12,7 @@ import (
 	"path"
 	"strings"
 
-	"../config"
+	"github.com/llugin/freesound-downloader/config"
 )
 
 type Client struct {

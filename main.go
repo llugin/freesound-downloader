@@ -4,8 +4,8 @@ import (
 	"flag"
 	"log"
 
-	"./client"
-	"./config"
+	"github.com/llugin/freesound-downloader/client"
+	"github.com/llugin/freesound-downloader/config"
 )
 
 func main() {
