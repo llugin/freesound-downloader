@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
 
 	"./client"
@@ -12,7 +11,11 @@ import (
 func main() {
 
 	authorize := flag.Bool("a", false, "authorize app")
-	download := flag.String("d", "", "download newest, provide authorization")
+	download := flag.String(
+		"d",
+		"",
+		"download newest, provide access token",
+	)
 
 	flag.Parse()
 
@@ -20,7 +23,6 @@ func main() {
 		Config: config.Config,
 	}
 	if *authorize {
-		fmt.Println("authorize")
 		err := c.Authorize()
 		if err != nil {
 			log.Fatal(err)
@@ -29,7 +31,6 @@ func main() {
 	}
 
 	if *download != "" {
-		fmt.Println("download")
 		query := client.Query{
 			Query:  "",
 			MaxLen: 60,

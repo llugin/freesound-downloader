@@ -204,32 +204,3 @@ func (c *Client) Download(result *SearchResult, accessToken string) error {
 	return nil
 
 }
-func (c *Client) AuthorizeOld() (string, error) {
-
-	u, err := url.Parse("https://freesound.org/apiv2/oauth2/authorize/")
-	if err != nil {
-		return "", err
-	}
-
-	q, err := url.ParseQuery(u.RawQuery)
-	if err != nil {
-		return "", err
-	}
-	q.Add("client_id", c.Config.ClientID)
-	q.Add("response_type", "code")
-	u.RawQuery = q.Encode()
-
-	resp, err := http.Get(u.String())
-	if err != nil {
-		return "", err
-	}
-	if resp.StatusCode != 200 {
-		return "", fmt.Errorf("%v", resp.StatusCode)
-	}
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return "", err
-	}
-
-	return string(body), nil
-}
