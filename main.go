@@ -9,19 +9,18 @@ import (
 )
 
 func main() {
-
 	authorize := flag.Bool("a", false, "authorize app")
 	download := flag.String(
 		"d",
 		"",
 		"download newest, provide access token",
 	)
-
 	flag.Parse()
 
 	c := client.Client{
 		Config: config.Config,
 	}
+
 	if *authorize {
 		err := c.Authorize()
 		if err != nil {

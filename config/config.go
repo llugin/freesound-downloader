@@ -2,6 +2,9 @@ package config
 
 import (
 	"log"
+	"os"
+	"path"
+	"path/filepath"
 
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
@@ -17,7 +20,13 @@ type APIConfig struct {
 }
 
 func init() {
-	if err := godotenv.Load(); err != nil {
+	exec, err := os.Executable()
+	if err != nil {
+		log.Fatal(err)
+	}
+	dir := filepath.Dir(exec)
+
+	if err := godotenv.Load(path.Join(dir, ".env")); err != nil {
 		log.Fatal(err)
 	}
 	if err := envconfig.Process("freesound", &Config); err != nil {
