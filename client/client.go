@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -33,6 +34,7 @@ type SearchResult struct {
 
 type Result struct {
 	Name     string   `json:"name"`
+	Type     string   `json:"type"`
 	License  string   `json:"license"`
 	Rating   float64  `json:"avg_rating"`
 	Duration float64  `json:"duration"`
@@ -89,7 +91,7 @@ func (c *Client) GetNewest(query Query) (*SearchResult, error) {
 	q.Add("sort", "created_desc")
 	q.Add("filter", fmt.Sprintf("duration:[0 TO %d]", query.MaxLen))
 	q.Add("license", "Creative Commons 0")
-	q.Add("fields", "name,download,duration,avg_rating,license,tags")
+	q.Add("fields", "type,name,download,duration,avg_rating,license,tags")
 	if query.PageSize != 0 {
 		q.Add("page_size", strconv.Itoa(query.PageSize))
 	}
@@ -177,6 +179,10 @@ func (c *Client) DownloadOne(result *Result, dir, accessToken string) error {
 	}
 
 	fileName := strings.ReplaceAll(result.Name, " ", "_")
+	if !strings.HasSuffix(fileName, fmt.Sprintf(".%s", result.Type)) {
+		fileName = fmt.Sprintf("%s.%s", result.Name, result.Type)
+	}
+
 	f, err := os.Create(path.Join(dir, fileName))
 	if err != nil {
 		return err
@@ -187,8 +193,9 @@ func (c *Client) DownloadOne(result *Result, dir, accessToken string) error {
 		return err
 	}
 
-	return nil
+	log.Printf("Downloaded %s into %s", fileName, dir)
 
+	return nil
 }
 
 func (c *Client) Download(result *SearchResult, accessToken string) error {
