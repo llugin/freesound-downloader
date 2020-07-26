@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"strconv"
 	"strings"
 
 	"github.com/llugin/freesound-downloader/config"
@@ -40,8 +41,9 @@ type Result struct {
 }
 
 type Query struct {
-	Query  string
-	MaxLen int
+	Query    string
+	MaxLen   int
+	PageSize int
 }
 
 type AccessResponse struct {
@@ -88,8 +90,12 @@ func (c *Client) GetNewest(query Query) (*SearchResult, error) {
 	q.Add("filter", fmt.Sprintf("duration:[0 TO %d]", query.MaxLen))
 	q.Add("license", "Creative Commons 0")
 	q.Add("fields", "name,download,duration,avg_rating,license,tags")
+	if query.PageSize != 0 {
+		q.Add("page_size", strconv.Itoa(query.PageSize))
+	}
 
 	u.RawQuery = q.Encode()
+	fmt.Println(u.String())
 
 	req, err := http.NewRequest("GET", u.String(), nil)
 	if err != nil {

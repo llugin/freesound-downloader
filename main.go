@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 
 	"github.com/llugin/freesound-downloader/client"
@@ -15,6 +16,7 @@ func main() {
 		"",
 		"download newest, provide access token",
 	)
+	list := flag.Bool("l", false, "list results")
 	flag.Parse()
 
 	c := client.Client{
@@ -31,8 +33,9 @@ func main() {
 
 	if *download != "" {
 		query := client.Query{
-			Query:  "",
-			MaxLen: 60,
+			Query:    "",
+			MaxLen:   60,
+			PageSize: 16,
 		}
 		res, err := c.GetNewest(query)
 		if err != nil {
@@ -47,6 +50,21 @@ func main() {
 		err = c.Download(res, ar.AccessToken)
 		if err != nil {
 			log.Fatal(err)
+		}
+	}
+
+	if *list {
+		query := client.Query{
+			Query:    "",
+			MaxLen:   60,
+			PageSize: 16,
+		}
+		res, err := c.GetNewest(query)
+		if err != nil {
+			log.Fatal(err)
+		}
+		for _, r := range res.Results {
+			fmt.Printf("%+v\n", r)
 		}
 	}
 }
