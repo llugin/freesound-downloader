@@ -40,12 +40,14 @@ type Result struct {
 	Duration float64  `json:"duration"`
 	Download string   `json:"download"`
 	Tags     []string `json:"tags"`
+	Created  string   `json:"created"`
 }
 
 type Query struct {
 	Query    string
 	MaxLen   int
 	PageSize int
+	Page     int
 }
 
 type AccessResponse struct {
@@ -87,11 +89,12 @@ func (c *Client) GetNewest(query Query) (*SearchResult, error) {
 		return nil, err
 	}
 	q.Add("query", query.Query)
+	q.Add("page", strconv.Itoa(query.Page))
 	q.Add("token", c.Config.ApiKey)
 	q.Add("sort", "created_desc")
 	q.Add("filter", fmt.Sprintf("duration:[0 TO %d]", query.MaxLen))
 	q.Add("license", "Creative Commons 0")
-	q.Add("fields", "type,name,download,duration,avg_rating,license,tags")
+	q.Add("fields", "type,created,name,download,duration,avg_rating,license,tags")
 	if query.PageSize != 0 {
 		q.Add("page_size", strconv.Itoa(query.PageSize))
 	}
@@ -178,12 +181,22 @@ func (c *Client) DownloadOne(result *Result, dir, accessToken string) error {
 		return fmt.Errorf(string(body))
 	}
 
-	fileName := strings.ReplaceAll(result.Name, " ", "_")
-	if !strings.HasSuffix(fileName, fmt.Sprintf(".%s", result.Type)) {
-		fileName = fmt.Sprintf("%s.%s", result.Name, result.Type)
+	filename := strings.ReplaceAll(result.Name, " ", "_")
+
+	fullpath := path.Join(dir, addExtension(filename, result.Type))
+	if _, err := os.Stat(fullpath); !os.IsNotExist(err) {
+		for i := 0; ; i++ {
+			fullpath = path.Join(
+				dir,
+				addExtension(fmt.Sprintf("%v_%v", filename, i), result.Type),
+			)
+			if _, err := os.Stat(fullpath); os.IsNotExist(err) {
+				break
+			}
+		}
 	}
 
-	f, err := os.Create(path.Join(dir, fileName))
+	f, err := os.Create(fullpath)
 	if err != nil {
 		return err
 	}
@@ -193,7 +206,7 @@ func (c *Client) DownloadOne(result *Result, dir, accessToken string) error {
 		return err
 	}
 
-	log.Printf("Downloaded %s into %s", fileName, dir)
+	log.Printf("Downloaded: %s", fullpath)
 
 	return nil
 }
@@ -216,4 +229,11 @@ func (c *Client) Download(result *SearchResult, accessToken string) error {
 	}
 	return nil
 
+}
+
+func addExtension(name, ftype string) string {
+	if !strings.HasSuffix(name, fmt.Sprintf(".%s", ftype)) {
+		return fmt.Sprintf("%s.%s", name, ftype)
+	}
+	return name
 }

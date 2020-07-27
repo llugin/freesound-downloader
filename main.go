@@ -17,6 +17,7 @@ func main() {
 		"download newest, provide access token",
 	)
 	list := flag.Bool("l", false, "list results")
+	page := flag.Int("p", 1, "page")
 	flag.Parse()
 
 	c := client.Client{
@@ -36,6 +37,7 @@ func main() {
 			Query:    "",
 			MaxLen:   60,
 			PageSize: 16,
+			Page:     *page,
 		}
 		res, err := c.GetNewest(query)
 		if err != nil {
@@ -58,6 +60,7 @@ func main() {
 			Query:    "",
 			MaxLen:   60,
 			PageSize: 16,
+			Page:     *page,
 		}
 		res, err := c.GetNewest(query)
 		if err != nil {
