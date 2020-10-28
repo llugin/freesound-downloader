@@ -10,11 +10,10 @@ import (
 )
 
 func main() {
-	authorize := flag.Bool("a", false, "authorize app")
-	download := flag.String(
+	download := flag.Bool(
 		"d",
-		"",
-		"download newest, provide access token",
+		false,
+		"download newest or results from page if provided",
 	)
 	list := flag.Bool("l", false, "list results")
 	page := flag.Int("p", 1, "page")
@@ -24,15 +23,12 @@ func main() {
 		Config: config.Config,
 	}
 
-	if *authorize {
-		err := c.Authorize()
+	if *download {
+		authCode, err := c.Authorize()
 		if err != nil {
 			log.Fatal(err)
 		}
-		return
-	}
 
-	if *download != "" {
 		query := client.Query{
 			Query:    "",
 			MaxLen:   60,
@@ -44,7 +40,7 @@ func main() {
 			log.Fatal(err)
 		}
 
-		ar, err := c.GetAccessToken(*download)
+		ar, err := c.GetAccessToken(authCode)
 		if err != nil {
 			log.Fatal(err)
 		}

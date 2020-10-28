@@ -1,6 +1,7 @@
 package client
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -58,23 +59,27 @@ type AccessResponse struct {
 	RefreshToken string `json:"refresh_token"`
 }
 
-func (c *Client) Authorize() error {
+func (c *Client) Authorize() (string, error) {
 
 	u, err := url.Parse("https://freesound.org/apiv2/oauth2/authorize/")
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	q, err := url.ParseQuery(u.RawQuery)
 	if err != nil {
-		return err
+		return "", err
 	}
 	q.Add("client_id", c.Config.ClientID)
 	q.Add("response_type", "code")
 	u.RawQuery = q.Encode()
 	cmd := exec.Command("open", u.String())
 	cmd.Run()
-	return nil
+
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Print("Enter authorization code: ")
+	auth, _ := reader.ReadString('\n')
+	return strings.TrimSpace(auth), nil
 }
 
 func (c *Client) GetNewest(query Query) (*SearchResult, error) {
