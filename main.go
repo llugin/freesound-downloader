@@ -10,60 +10,71 @@ import (
 )
 
 func main() {
-	download := flag.Bool(
-		"d",
-		false,
-		"download newest or results from page if provided",
-	)
-	list := flag.Bool("l", false, "list results")
-	page := flag.Int("p", 1, "page")
+	listFlag := flag.Bool("l", false, "list results from page")
+	pageFlag := flag.Int("p", 1, "page used for download and list")
 	flag.Parse()
 
-	c := client.Client{
+	c := &client.Client{
 		Config: config.Config,
 	}
 
-	if *download {
-		authCode, err := c.Authorize()
+	if *listFlag {
+		err := list(c, *pageFlag)
 		if err != nil {
 			log.Fatal(err)
 		}
-
-		query := client.Query{
-			Query:    "",
-			MaxLen:   60,
-			PageSize: 16,
-			Page:     *page,
-		}
-		res, err := c.GetNewest(query)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		ar, err := c.GetAccessToken(authCode)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		err = c.Download(res, ar.AccessToken)
-		if err != nil {
-			log.Fatal(err)
-		}
+		return
 	}
 
-	if *list {
-		query := client.Query{
-			Query:    "",
-			MaxLen:   60,
-			PageSize: 16,
-			Page:     *page,
-		}
-		res, err := c.GetNewest(query)
-		if err != nil {
-			log.Fatal(err)
-		}
-		for _, r := range res.Results {
-			fmt.Printf("%+v\n", r)
-		}
+	err := download(c, *pageFlag)
+	if err != nil {
+		log.Fatal(err)
 	}
+}
+
+func download(c *client.Client, page int) error {
+	authCode, err := c.Authorize()
+	if err != nil {
+		return err
+	}
+
+	query := client.Query{
+		Query:    "",
+		MaxLen:   60,
+		PageSize: 16,
+		Page:     page,
+	}
+	res, err := c.GetNewest(query)
+	if err != nil {
+		return err
+	}
+
+	ar, err := c.GetAccessToken(authCode)
+	if err != nil {
+		return err
+	}
+
+	err = c.Download(res, ar.AccessToken)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func list(c *client.Client, page int) error {
+	query := client.Query{
+		Query:    "",
+		MaxLen:   60,
+		PageSize: 16,
+		Page:     page,
+	}
+	res, err := c.GetNewest(query)
+	if err != nil {
+		return err
+	}
+	for _, r := range res.Results {
+		fmt.Printf("%+v\n", r)
+	}
+	return nil
 }

@@ -59,6 +59,7 @@ type AccessResponse struct {
 	RefreshToken string `json:"refresh_token"`
 }
 
+// Authorize acquire oauth2 authorization key needed for downloading files by API
 func (c *Client) Authorize() (string, error) {
 
 	u, err := url.Parse("https://freesound.org/apiv2/oauth2/authorize/")
